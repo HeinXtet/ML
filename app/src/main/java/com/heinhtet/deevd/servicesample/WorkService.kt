@@ -52,7 +52,6 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
         Log.v(LOG_TAG, "in onCreate")
         mContext = this
         localMediaPlayer = LocalMediaPlayer(this, this, mContext)
-
     }
 
     fun start() {
@@ -63,8 +62,11 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
         localMediaPlayer.pausePlayback()
     }
 
-    override fun onBind(intent: Intent?): IBinder {
+    fun playMedia() {
         localMediaPlayer.loadMediaItems(ArrayList(), 0)
+    }
+
+    override fun onBind(intent: Intent?): IBinder {
         return workBinder
     }
 

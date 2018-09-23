@@ -54,9 +54,6 @@ abstract class MediaPlayer() {
         fun updateProgress(progress: Long)
     }
 
-
-
-
     interface MediaPlayerListener {
         fun onStateChanged(state: Int)
         fun trackChange(item : MediaItem)

@@ -28,8 +28,8 @@ import com.google.android.exoplayer2.Player
 /**
  * Created by Hein Htet on 9/20/18.
  */
-class LocalMediaPlayer(val progressUpdateListener: ProgressUpdateListener, val mediaPlayerListener: MediaPlayerListener
-                       , val context: Context) :
+class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val mediaPlayerListener: MediaPlayerListener
+                       , context: Context) :
         MediaPlayer(progressUpdateListener, mediaPlayerListener), Player.EventListener {
 
 
@@ -68,18 +68,25 @@ class LocalMediaPlayer(val progressUpdateListener: ProgressUpdateListener, val m
         mediaPlayerListener.onStateChanged(playbackState)
     }
 
-    var handler: android.os.Handler? = Handler()
+
+   private var progressHandler: android.os.Handler? = Handler()
 
     private fun updateProgress() {
-        val position: Long = if (mMediaPlayer == null) {
-            0L
-        } else {
-            mMediaPlayer!!.currentPosition
-        }
-        mediaPlayerListener.progressChange(position, mMediaPlayer!!)
-        handler?.postDelayed(updateProgressAction, 1000)
+        if (mMediaPlayer != null) {
+            val playbackState = if (mMediaPlayer == null) Player.STATE_IDLE else mMediaPlayer?.playbackState
 
+            if (mMediaPlayer!!.playWhenReady && playbackState == Player.STATE_READY) {
+                val position: Long = if (mMediaPlayer == null) {
+                    0L
+                } else {
+                    mMediaPlayer!!.currentPosition
+                }
+                mediaPlayerListener.progressChange(position, mMediaPlayer!!)
+            }
+            progressHandler?.postDelayed(updateProgressAction, 1000)
+        }
     }
+
     private val updateProgressAction = Runnable { updateProgress() }
     private var playbackPosition = 0L
     private var currentPosition = 0
@@ -152,8 +159,10 @@ class LocalMediaPlayer(val progressUpdateListener: ProgressUpdateListener, val m
     }
 
     override fun loadMediaItems(items: ArrayList<MediaItem>, position: Int) {
-        currentPosition = position
-        buildMediaItems(items, position)
+        if (this.mediaList.isEmpty()) {
+            currentPosition = position
+            buildMediaItems(items, position)
+        }
     }
 
     override fun resumePlayback() {
@@ -161,7 +170,7 @@ class LocalMediaPlayer(val progressUpdateListener: ProgressUpdateListener, val m
 
     override fun pausePlayback() {
         mMediaPlayer?.playWhenReady = false
-        handler?.removeCallbacks(updateProgressAction)
+        progressHandler?.removeCallbacks(updateProgressAction)
     }
 
     override fun stopPlayback() {

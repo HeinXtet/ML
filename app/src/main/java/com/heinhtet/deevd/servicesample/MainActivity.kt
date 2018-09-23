@@ -67,6 +67,7 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
 
         findViewById<Button>(R.id.print_timestamp).setOnClickListener {
             if (mServiceBound) {
+                mBoundService?.playMedia()
                 mBoundService?.start()
             }
         }
@@ -78,8 +79,6 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
         findViewById<Button>(R.id.stop_service).setOnClickListener {
             mBoundService?.stop()
         }
-
-
     }
 
     override fun onStart() {
@@ -105,7 +104,6 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
         super.onStop()
         if (mServiceBound) {
             unbindService(mServiceConnection)
-
             mServiceBound = false
         }
     }
@@ -114,7 +112,6 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
         super.onDestroy()
         //stopService()
     }
-
 
     private fun stopService() {
         if (mServiceBound) {
