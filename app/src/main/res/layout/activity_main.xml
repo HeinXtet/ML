@@ -1,0 +1,79 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="-80dp" />
+
+    <Button
+        android:id="@+id/print_timestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="130dp"
+        android:text="Print Timestamp" />
+
+    <TextView
+        android:id="@+id/timestamp_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/print_timestamp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="120dp"
+        android:text=""
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <Button
+        android:id="@+id/stop_service"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/print_timestamp"
+        android:layout_centerHorizontal="true"
+        android:text="Stop Service" />
+
+    <Button
+        android:id="@+id/next"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="next" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/seek_bar"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp">
+
+        <TextView
+            android:id="@+id/start_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0:00" />
+
+        <TextView
+            android:id="@+id/total_time"
+            android:layout_width="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_height="wrap_content"
+            android:text="0:00"
+            android:layout_alignParentRight="true" />
+
+    </RelativeLayout>
+
+    <android.support.v7.widget.AppCompatSeekBar
+        android:id="@+id/seek_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        android:max="100" />
+
+</RelativeLayout>
