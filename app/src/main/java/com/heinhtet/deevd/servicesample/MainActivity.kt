@@ -11,6 +11,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.SeekBar
 import com.google.android.exoplayer2.ExoPlayer
+import com.heinhtet.deevd.helper.ServiceHelper
 import com.heinhtet.deevd.serviceeample.model.SongHelper
 import com.heinhtet.deevd.servicesample.base.MediaPlayer
 import com.heinhtet.deevd.servicesample.utils.FormatUtils
@@ -38,102 +39,63 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
         total_time.text = FormatUtils.formatMusicTime(player.duration)
     }
 
-
     private val TAG = "MainActivity"
-    var mBoundService: WorkService? = null
-    var mServiceBound = false
-    private lateinit var songlist: ArrayList<MediaItem>
+    private lateinit var serviceHelper: ServiceHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
-
-
         seek_bar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                 if (p2) {
-                    mBoundService?.localMediaPlayer?.seekTo(p1.toLong())
+                    serviceHelper.seekTo(p1.toLong())
                 }
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {
             }
+
             override fun onStopTrackingTouch(p0: SeekBar?) {
             }
         })
 
 
         findViewById<Button>(R.id.print_timestamp).setOnClickListener {
-            if (mServiceBound) {
-                mBoundService?.playMedia()
-                mBoundService?.start()
-            }
+            serviceHelper.loadMediaItems()
+            serviceHelper.play()
         }
         findViewById<Button>(R.id.next).setOnClickListener {
-            if (mServiceBound) {
-                mBoundService?.stop()
-            }
+            serviceHelper.pause()
         }
         findViewById<Button>(R.id.stop_service).setOnClickListener {
-            mBoundService?.stop()
+            startActivity(Intent(this@MainActivity, SecondActivity::class.java))
         }
     }
 
     override fun onStart() {
         super.onStart()
         gettingSong()
-        val workService = WorkService()
-        val intent = Intent(this, workService::class.java)
-        startService(intent)
-        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+        serviceHelper = ServiceHelper(this, this)
+        serviceHelper.register()
     }
 
     private fun gettingSong() {
-        songlist = ArrayList()
         val songHelper = SongHelper()
         songHelper.scanSongs(this, "external")
         songHelper.getSongs().forEach {
-            songlist.add(MediaItem(it.title, it.filePath))
-            AppConstants.list.addAll(songlist)
+            AppConstants.list.add(MediaItem(it.title, it.filePath))
         }
     }
 
     override fun onStop() {
         super.onStop()
-        if (mServiceBound) {
-            unbindService(mServiceConnection)
-            mServiceBound = false
-        }
+        serviceHelper.unRegister()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        //stopService()
+        serviceHelper.stopService()
     }
 
-    private fun stopService() {
-        if (mServiceBound) {
-            unbindService(mServiceConnection)
-            mServiceBound = false
-        }
-        val workService = WorkService()
-        val intent = Intent(this@MainActivity,
-                workService::class.java)
-        stopService(intent)
-    }
-
-    private val mServiceConnection = object : ServiceConnection {
-        override fun onServiceDisconnected(name: ComponentName) {
-            mServiceBound = false
-        }
-
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            val myBinder = service as WorkService.WorkBinder
-            mBoundService = myBinder.service
-            mBoundService?.setCallback(this@MainActivity)
-            mServiceBound = true
-        }
-    }
 }

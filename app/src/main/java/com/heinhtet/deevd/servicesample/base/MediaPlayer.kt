@@ -12,7 +12,6 @@ abstract class MediaPlayer() {
 
     constructor(progressUpdateListener: ProgressUpdateListener,
                 mediaPlayerListener: MediaPlayerListener) : this() {
-
         this.mProgressUpdateListener = progressUpdateListener
         this.mMediaplayerListener = mediaPlayerListener
     }
@@ -23,7 +22,7 @@ abstract class MediaPlayer() {
     }
 
 
-    abstract fun loadMediaItems(items: ArrayList<MediaItem>, position: Int = 0)
+    abstract fun loadMediaItems(items: ArrayList<MediaItem>, position: Int = 0, playlistId: Long = 0L)
 
     abstract fun startPlayback(playImmediately: Boolean)
 
@@ -56,8 +55,8 @@ abstract class MediaPlayer() {
 
     interface MediaPlayerListener {
         fun onStateChanged(state: Int)
-        fun trackChange(item : MediaItem)
-        fun progressChange(progress : Long , player : ExoPlayer)
+        fun trackChange(item: MediaItem)
+        fun progressChange(progress: Long, player: ExoPlayer)
     }
 
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Handler
 import android.util.Log
+import android.util.TimeUtils
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
@@ -69,7 +70,7 @@ class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val media
     }
 
 
-   private var progressHandler: android.os.Handler? = Handler()
+    private var progressHandler: android.os.Handler? = Handler()
 
     private fun updateProgress() {
         if (mMediaPlayer != null) {
@@ -110,10 +111,10 @@ class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val media
         mMediaPlayerState = Player.STATE_IDLE
     }
 
-    private fun buildMediaItems(list: ArrayList<MediaItem>, index: Int) {
+    private fun buildMediaItems(list: ArrayList<MediaItem>, index: Int, playlistId: Long) {
         lastPlayIndex = index
+        this.PLAYLIST_ID = playlistId
         val media: MediaSource?
-        list.addAll(AppConstants.list)
         val size = list.size
         val mediaSources = arrayOfNulls<MediaSource>(size)
         list.forEachIndexed { index, mission ->
@@ -142,8 +143,11 @@ class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val media
     }
 
     override fun next() {
+        if (isNextAvailable) {
 
+        }
     }
+
 
     private val isNextAvailable: Boolean
         get() = currentPosition != -1 && currentPosition + 1 < mediaList.count()
@@ -158,10 +162,10 @@ class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val media
         updateProgress()
     }
 
-    override fun loadMediaItems(items: ArrayList<MediaItem>, position: Int) {
+    override fun loadMediaItems(items: ArrayList<MediaItem>, position: Int, playlistId: Long) {
         if (this.mediaList.isEmpty()) {
             currentPosition = position
-            buildMediaItems(items, position)
+            buildMediaItems(items, position, playlistId)
         }
     }
 

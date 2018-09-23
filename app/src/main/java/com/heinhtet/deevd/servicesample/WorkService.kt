@@ -58,12 +58,16 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
         localMediaPlayer.startPlayback(true)
     }
 
+    fun next(){
+        localMediaPlayer.next()
+    }
+
     fun stop() {
         localMediaPlayer.pausePlayback()
     }
 
-    fun playMedia() {
-        localMediaPlayer.loadMediaItems(ArrayList(), 0)
+    fun addMediaItems() {
+        localMediaPlayer.loadMediaItems(AppConstants.list, 0)
     }
 
     override fun onBind(intent: Intent?): IBinder {
