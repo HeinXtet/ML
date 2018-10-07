@@ -144,7 +144,6 @@ class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val media
 
     override fun next() {
         if (isNextAvailable) {
-
         }
     }
 

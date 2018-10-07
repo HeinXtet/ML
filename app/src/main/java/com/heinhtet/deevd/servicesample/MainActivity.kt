@@ -2,16 +2,12 @@ package com.heinhtet.deevd.servicesample
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.os.IBinder
-import android.content.ComponentName
-import android.content.Context
-import android.content.ServiceConnection
 import android.content.Intent
 import android.util.Log
 import android.widget.Button
 import android.widget.SeekBar
 import com.google.android.exoplayer2.ExoPlayer
-import com.heinhtet.deevd.helper.ServiceHelper
+import com.heinhtet.deevd.servicesample.helper.MusicManager
 import com.heinhtet.deevd.serviceeample.model.SongHelper
 import com.heinhtet.deevd.servicesample.base.MediaPlayer
 import com.heinhtet.deevd.servicesample.utils.FormatUtils
@@ -22,6 +18,10 @@ data class MediaItem(var title: String, var path: String)
 
 
 class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
+
+
+    private lateinit var musicManager: MusicManager
+
 
     override fun onStateChanged(state: Int) {
         Log.i(TAG, " player state change $state")
@@ -40,16 +40,13 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
     }
 
     private val TAG = "MainActivity"
-    private lateinit var serviceHelper: ServiceHelper
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         seek_bar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                 if (p2) {
-                    serviceHelper.seekTo(p1.toLong())
+                    musicManager.seekTo(p1.toLong())
                 }
             }
 
@@ -59,14 +56,12 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
             override fun onStopTrackingTouch(p0: SeekBar?) {
             }
         })
-
-
         findViewById<Button>(R.id.print_timestamp).setOnClickListener {
-            serviceHelper.loadMediaItems()
-            serviceHelper.play()
+            musicManager.loadMediaItems()
+            musicManager.play()
         }
         findViewById<Button>(R.id.next).setOnClickListener {
-            serviceHelper.pause()
+            musicManager.pause()
         }
         findViewById<Button>(R.id.stop_service).setOnClickListener {
             startActivity(Intent(this@MainActivity, SecondActivity::class.java))
@@ -76,8 +71,8 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
     override fun onStart() {
         super.onStart()
         gettingSong()
-        serviceHelper = ServiceHelper(this, this)
-        serviceHelper.register()
+        musicManager = MusicManager(this, this)
+        musicManager.register()
     }
 
     private fun gettingSong() {
@@ -90,12 +85,12 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
 
     override fun onStop() {
         super.onStop()
-        serviceHelper.unRegister()
+        musicManager.unRegister()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        serviceHelper.stopService()
+       // musicManager.stopService()
     }
 
 }

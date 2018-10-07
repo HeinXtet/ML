@@ -1,4 +1,4 @@
-package com.heinhtet.deevd.helper
+package com.heinhtet.deevd.servicesample.helper
 
 import android.content.ComponentName
 import android.content.Context
@@ -11,12 +11,9 @@ import com.heinhtet.deevd.servicesample.base.MediaPlayer
 /**
  * Created by Hein Htet on 9/23/18.
  */
-class ServiceHelper(private val context: Context, private var mediaPlayerListener: MediaPlayer.MediaPlayerListener) {
-
+class MusicManager(private val context: Context, private var mediaPlayerListener: MediaPlayer.MediaPlayerListener) {
     private var mBoundService = WorkService()
     private var mServiceBound = false
-
-
     /**
      *  register service activate
      */
