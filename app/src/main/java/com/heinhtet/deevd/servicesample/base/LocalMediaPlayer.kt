@@ -66,7 +66,7 @@ class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val media
     }
 
     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-        mediaPlayerListener.onStateChanged(playbackState)
+        mediaPlayerListener.onStateChanged(playbackState,playWhenReady)
     }
 
 
@@ -144,6 +144,7 @@ class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val media
 
     override fun next() {
         if (isNextAvailable) {
+
         }
     }
 

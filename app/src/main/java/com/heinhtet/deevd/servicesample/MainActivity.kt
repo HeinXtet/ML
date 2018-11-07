@@ -1,8 +1,11 @@
 package com.heinhtet.deevd.servicesample
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.content.Intent
+import android.support.v4.media.session.MediaButtonReceiver
 import android.util.Log
 import android.widget.Button
 import android.widget.SeekBar
@@ -23,7 +26,7 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
     private lateinit var musicManager: MusicManager
 
 
-    override fun onStateChanged(state: Int) {
+    override fun onStateChanged(state: Int, playWhenReady: Boolean) {
         Log.i(TAG, " player state change $state")
     }
 
@@ -68,6 +71,7 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
         }
     }
 
+
     override fun onStart() {
         super.onStart()
         gettingSong()
@@ -79,8 +83,10 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
         val songHelper = SongHelper()
         songHelper.scanSongs(this, "external")
         songHelper.getSongs().forEach {
+            Log.i(TAG, "load media item ${it.toString()}")
             AppConstants.list.add(MediaItem(it.title, it.filePath))
         }
+        AppConstants.list.removeAt(0)
     }
 
     override fun onStop() {
@@ -90,7 +96,7 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
 
     override fun onDestroy() {
         super.onDestroy()
-       // musicManager.stopService()
+        // musicManager.stopService()
     }
 
 }

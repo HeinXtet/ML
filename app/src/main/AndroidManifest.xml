@@ -19,8 +19,14 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".WorkService"/>
+        <service android:name=".WorkService" android:enabled="true"/>
         <activity android:name=".SecondActivity"/>
+
+        <receiver android:name=".WorkService$MediaReceiver">
+            <intent-filter  android:enabled="true">
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
