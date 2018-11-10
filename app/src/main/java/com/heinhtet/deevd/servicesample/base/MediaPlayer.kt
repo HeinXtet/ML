@@ -48,6 +48,8 @@ abstract class MediaPlayer() {
 
     abstract fun next()
 
+    abstract  fun  previous()
+
 
     interface ProgressUpdateListener {
         fun updateProgress(progress: Long)

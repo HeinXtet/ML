@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.os.Handler
 import android.util.Log
-import android.util.TimeUtils
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
@@ -14,16 +13,11 @@ import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray
-import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.upstream.TransferListener
 import com.google.android.exoplayer2.util.Util
-import com.heinhtet.deevd.servicesample.AppConstants
 import com.heinhtet.deevd.servicesample.MediaItem
 import java.io.File
-import com.google.android.exoplayer2.Timeline
-import com.google.android.exoplayer2.Player
 
 
 /**
@@ -66,11 +60,13 @@ class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val media
     }
 
     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-        mediaPlayerListener.onStateChanged(playbackState,playWhenReady)
+        this.playWhenReady = playWhenReady
+        mediaPlayerListener.onStateChanged(playbackState, playWhenReady)
     }
 
 
     private var progressHandler: android.os.Handler? = Handler()
+    private var playWhenReady = false
 
     private fun updateProgress() {
         if (mMediaPlayer != null) {
@@ -104,12 +100,13 @@ class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val media
     init {
         val bandwidthMeter = DefaultBandwidthMeter()
         val videoTrackSelectionFactory = AdaptiveTrackSelection.Factory(bandwidthMeter)
-        val mediaDataSourceFactory = DefaultDataSourceFactory(mContext, Util.getUserAgent(mContext, "mediaPlayerSample"), bandwidthMeter as TransferListener<in DataSource>)
+        // val mediaDataSourceFactory = DefaultDataSourceFactory(mContext, Util.getUserAgent(mContext, "mediaPlayerSample"), bandwidthMeter as TransferListener<in DataSource>)
         trackSelector = DefaultTrackSelector(videoTrackSelectionFactory)
         mMediaPlayer = ExoPlayerFactory.newSimpleInstance(mContext, trackSelector)
         mMediaPlayer?.addListener(this)
         mMediaPlayerState = Player.STATE_IDLE
     }
+
 
     private fun buildMediaItems(list: ArrayList<MediaItem>, index: Int, playlistId: Long) {
         lastPlayIndex = index
@@ -136,18 +133,37 @@ class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val media
     private fun buildMediaSource(path: String): MediaSource {
         val bandwidthMeter = DefaultBandwidthMeter()
         val extractorsFactory = DefaultExtractorsFactory()
-        val mediaDataSourceFactory = DefaultDataSourceFactory(mContext, Util.getUserAgent(mContext, "Muscy"),
-                bandwidthMeter as TransferListener<in DataSource>)
-        return ExtractorMediaSource(Uri.fromFile(File(path)),
-                mediaDataSourceFactory, extractorsFactory, null, null)
+        val mediaSourceFactory = ExtractorMediaSource.Factory(DefaultDataSourceFactory(mContext, Util.getUserAgent(mContext, "MusicService")))
+//
+//        val mediaDataSourceFactory = DefaultDataSourceFactory(mContext, Util.getUserAgent(mContext, "Muscy"),
+//                bandwidthMeter as TransferListener<in DataSource>)
+//        return ExtractorMediaSource(Uri.fromFile(File(path)),
+//                mediaDataSourceFactory, extractorsFactory, null, null)
+
+        return mediaSourceFactory.createMediaSource(Uri.fromFile(File(path)))
+
     }
+
 
     override fun next() {
-        if (isNextAvailable) {
+        if (mMediaPlayer != null) {
+
+            if (mMediaPlayer!!.hasNext()) {
+                mMediaPlayer!!.next()
+            }
 
         }
+
     }
 
+
+    override fun previous() {
+        if (mMediaPlayer != null) {
+            if (mMediaPlayer!!.hasPrevious()) {
+                mMediaPlayer!!.previous()
+            }
+        }
+    }
 
     private val isNextAvailable: Boolean
         get() = currentPosition != -1 && currentPosition + 1 < mediaList.count()
@@ -156,6 +172,10 @@ class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val media
     private val isPreviousAvailable: Boolean
         get() = currentPosition > 0
 
+
+    fun isPlaying() :Boolean{
+       return playWhenReady
+    }
 
     override fun startPlayback(playImmediately: Boolean) {
         mMediaPlayer!!.playWhenReady = playImmediately
@@ -208,6 +228,8 @@ class LocalMediaPlayer(progressUpdateListener: ProgressUpdateListener, val media
     override fun setPlaybackSpeed(speed: Float) {
 
     }
+
+
 
 
 }

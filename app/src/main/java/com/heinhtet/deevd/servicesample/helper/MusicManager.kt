@@ -27,9 +27,19 @@ class MusicManager(private val context: Context, private var mediaPlayerListener
         mBoundService.localMediaPlayer.seekTo(position)
     }
 
-    fun play() {
-        mBoundService.start()
+    fun play(state:(isPlaying : Boolean)->Unit) {
+        if (!mBoundService.isPlaying()) {
+            mBoundService.start()
+            state(true)
+        } else {
+            mBoundService.stop()
+            state(false)
+        }
     }
+
+
+
+    fun isPlaying() = mBoundService.isPlaying()
 
     fun pause() {
         mBoundService.stop()
@@ -37,6 +47,14 @@ class MusicManager(private val context: Context, private var mediaPlayerListener
 
     fun loadMediaItems() {
         mBoundService.addMediaItems()
+    }
+
+    fun next() {
+        mBoundService.next()
+    }
+
+    fun previous() {
+        mBoundService.previous()
     }
 
     /**

@@ -1,7 +1,8 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#FFFFFF">
 
     <ImageView
@@ -17,9 +18,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="130dp"
-        android:text="Print Timestamp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/time_frame"
+        app:layout_constraintStart_toStartOf="parent"
+        android:text="Play" />
 
     <TextView
         android:id="@+id/timestamp_text"
@@ -28,24 +30,31 @@
         android:layout_below="@+id/print_timestamp"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="120dp"
-        android:text=""
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <Button
         android:id="@+id/stop_service"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        app:layout_constraintEnd_toStartOf="@id/print_timestamp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/time_frame"
         android:layout_below="@+id/print_timestamp"
         android:layout_centerHorizontal="true"
-        android:text="Stop Service" />
+        android:text="Previous" />
 
     <Button
         android:id="@+id/next"
+        app:layout_constraintBottom_toTopOf="@id/time_frame"
         android:layout_width="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/print_timestamp"
         android:layout_height="wrap_content"
         android:text="next" />
 
     <RelativeLayout
+        android:id="@+id/time_frame"
+        app:layout_constraintBottom_toTopOf="@id/seek_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/seek_bar"
@@ -70,10 +79,13 @@
 
     <android.support.v7.widget.AppCompatSeekBar
         android:id="@+id/seek_bar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_margin="16dp"
         android:max="100" />
 
-</RelativeLayout>
+</android.support.constraint.ConstraintLayout>

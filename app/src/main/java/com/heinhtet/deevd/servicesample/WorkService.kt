@@ -1,16 +1,17 @@
 package com.heinhtet.deevd.servicesample
 
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
 import android.content.BroadcastReceiver
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
 import android.media.session.MediaSession
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
+import android.support.annotation.RequiresApi
 import android.support.v4.app.NotificationCompat
 import android.support.v4.media.session.MediaButtonReceiver
 import android.support.v4.media.session.MediaSessionCompat
@@ -48,8 +49,8 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
         mediaPlayerListener?.trackChange(item)
     }
 
-    override fun onStateChanged(state: Int  , playWhenReady :Boolean) {
-        mediaPlayerListener?.onStateChanged(state,playWhenReady)
+    override fun onStateChanged(state: Int, playWhenReady: Boolean) {
+        mediaPlayerListener?.onStateChanged(state, playWhenReady)
         if (state == Player.STATE_READY && playWhenReady) {
             mStateBuilder.setState(PlaybackStateCompat.STATE_PLAYING,
                     localMediaPlayer.getCurrentPosition(), 1f)
@@ -58,16 +59,15 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
                     localMediaPlayer.getCurrentPosition(), 1f)
         }
         mMediaSession.setPlaybackState(mStateBuilder.build())
-        showNotification(state = mStateBuilder.build())
-
-        Log.i(LOG_TAG, " playWhenReady $playWhenReady  state $state  " )
+        startForeground(1, showNotification(mStateBuilder.build()))
+        Log.i(LOG_TAG, " playWhenReady $playWhenReady  state $state  ")
     }
 
     companion object {
-         lateinit var mMediaSession : MediaSessionCompat
+        lateinit var mMediaSession: MediaSessionCompat
     }
 
-    lateinit var builder : NotificationCompat.Builder
+    lateinit var builder: NotificationCompat.Builder
     private lateinit var mStateBuilder: PlaybackStateCompat.Builder
     private val LOG_TAG = "WorkService"
     private var workBinder: IBinder = WorkBinder()
@@ -89,9 +89,8 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
 
     }
 
-    private fun initMediaSession(){
-        mMediaSession = MediaSessionCompat(this,"MusicService")
-
+    private fun initMediaSession() {
+        mMediaSession = MediaSessionCompat(this, "MusicService")
         // Enable callbacks from MediaButtons and TransportControls.
         mMediaSession.setFlags(
                 MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
@@ -105,7 +104,9 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
                         PlaybackStateCompat.ACTION_PLAY or
                                 PlaybackStateCompat.ACTION_PAUSE or
                                 PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
-                                PlaybackStateCompat.ACTION_PLAY_PAUSE)
+                                PlaybackStateCompat.ACTION_PLAY_PAUSE or
+                                PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
+                                PlaybackStateCompat.ACTION_STOP)
 
         mMediaSession.setPlaybackState(mStateBuilder.build())
 
@@ -126,8 +127,18 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
             localMediaPlayer.pausePlayback()
         }
 
+
+        override fun onSkipToNext() {
+            localMediaPlayer.next()
+        }
+
         override fun onSkipToPrevious() {
-            localMediaPlayer.seekTo(0)
+            localMediaPlayer.previous()
+        }
+
+        override fun onStop() {
+            super.onStop()
+            onDestroy()
         }
     }
 
@@ -139,13 +150,29 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
         }
     }
 
+    fun isInit(): Boolean {
+        return ::localMediaPlayer.isInitialized
+    }
+
+
+    fun isPlaying(): Boolean {
+        if (isInit()) {
+            return localMediaPlayer.isPlaying()
+
+        }
+        return false
+    }
 
     fun start() {
         localMediaPlayer.startPlayback(true)
     }
 
-    fun next(){
+    fun next() {
         localMediaPlayer.next()
+    }
+
+    fun previous() {
+        localMediaPlayer.previous()
     }
 
     fun stop() {
@@ -174,8 +201,8 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
         super.onDestroy()
         mMediaSession.isActive = false
         mNotificationManager.cancelAll()
+        stopService(Intent(this, WorkService::class.java))
         Log.v(LOG_TAG, "in onDestroy")
-        //unregisterReceiver(MediaReceiver)
     }
 
     fun setCallback(mediaPlayerListener: MediaPlayer.MediaPlayerListener) {
@@ -187,10 +214,27 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
             get() = this@WorkService
     }
 
-    private fun showNotification(state: PlaybackStateCompat) {
-        builder = NotificationCompat.Builder(this)
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createNotificationChannel(channelId: String, channelName: String): String {
+        val chan = NotificationChannel(channelId,
+                channelName, NotificationManager.IMPORTANCE_NONE)
+        chan.lightColor = Color.BLUE
+        chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        service.createNotificationChannel(chan)
+        return channelId
+    }
 
+    private fun showNotification(state: PlaybackStateCompat): Notification {
+        val channelId =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    createNotificationChannel("my_service", "My Background Service")
+                } else {
+                    ""
+                }
         val icon: Int
+        builder = NotificationCompat.Builder(this, channelId)
+
         val play_pause: String
         if (state.state == PlaybackStateCompat.STATE_PLAYING) {
             icon = R.drawable.exo_controls_pause
@@ -203,11 +247,13 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
                 icon, play_pause,
                 MediaButtonReceiver.buildMediaButtonPendingIntent(this,
                         PlaybackStateCompat.ACTION_PLAY_PAUSE))
-        val nextAction =  android.support.v4.app.NotificationCompat.Action(R.drawable.exo_controls_next, "next",
+        val nextAction = android.support.v4.app.NotificationCompat.Action(R.drawable.exo_controls_next, getString(R.string.next),
                 MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_NEXT))
 
         val restartAction = android.support.v4.app.NotificationCompat.Action(R.drawable.exo_controls_previous, getString(R.string.restart),
                 MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS))
+        val stopAction = android.support.v4.app.NotificationCompat.Action(R.drawable.exo_notification_stop, "stop",
+                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_STOP))
 
         val contentPendingIntent = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), 0)
         builder.setContentTitle(getString(R.string.guess))
@@ -218,14 +264,11 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
                 .addAction(restartAction)
                 .addAction(playPauseAction)
                 .addAction(nextAction)
-                .setOngoing(false)
+                .addAction(stopAction)
                 .setStyle(android.support.v4.media.app.NotificationCompat.MediaStyle()
                         .setMediaSession(mMediaSession.sessionToken)
                         .setShowActionsInCompactView(0, 1))
-
-
-        mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        mNotificationManager.notify(0, builder.build())
+        return builder.build()
     }
 
 

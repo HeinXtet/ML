@@ -23,11 +23,12 @@ data class MediaItem(var title: String, var path: String)
 class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
 
 
+    lateinit var play : Button
     private lateinit var musicManager: MusicManager
 
 
     override fun onStateChanged(state: Int, playWhenReady: Boolean) {
-        Log.i(TAG, " player state change $state")
+        Log.i(TAG, " player state change $state $playWhenReady")
     }
 
     override fun trackChange(item: MediaItem) {
@@ -59,24 +60,40 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
             override fun onStopTrackingTouch(p0: SeekBar?) {
             }
         })
-        findViewById<Button>(R.id.print_timestamp).setOnClickListener {
+        play =  findViewById(R.id.print_timestamp)
+        play.setOnClickListener {
             musicManager.loadMediaItems()
-            musicManager.play()
+            musicManager.play(state = {
+                if (it){
+                    play.text = "pause"
+                }else{
+                    play.text = "play"
+                }
+            })
         }
         findViewById<Button>(R.id.next).setOnClickListener {
-            musicManager.pause()
+            musicManager.next()
         }
         findViewById<Button>(R.id.stop_service).setOnClickListener {
-            startActivity(Intent(this@MainActivity, SecondActivity::class.java))
+            musicManager.previous()
+            //startActivity(Intent(this@MainActivity, SecondActivity::class.java))
         }
     }
 
+    private fun checkState(playWhenReady: Boolean){
+        if (playWhenReady){
+            play.text = "pause"
+        }else{
+            play.text = "play"
+        }
+    }
 
     override fun onStart() {
         super.onStart()
         gettingSong()
         musicManager = MusicManager(this, this)
         musicManager.register()
+        checkState(musicManager.isPlaying())
     }
 
     private fun gettingSong() {
@@ -86,8 +103,7 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
             Log.i(TAG, "load media item ${it.toString()}")
             AppConstants.list.add(MediaItem(it.title, it.filePath))
         }
-        AppConstants.list.removeAt(0)
-    }
+      }
 
     override fun onStop() {
         super.onStop()
