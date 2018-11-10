@@ -11,12 +11,18 @@ import com.heinhtet.deevd.servicesample.base.MediaPlayer
 /**
  * Created by Hein Htet on 9/23/18.
  */
-class MusicManager(private val context: Context, private var mediaPlayerListener: MediaPlayer.MediaPlayerListener) {
+class MusicManager(private val context: Context) {
     private var mBoundService = WorkService()
     private var mServiceBound = false
+    private lateinit var mediaPlayerListener : MediaPlayer.MediaPlayerListener
     /**
      *  register service activate
      */
+
+    fun setListener(mediaPlayerListener: MediaPlayer.MediaPlayerListener){
+        this.mediaPlayerListener = mediaPlayerListener
+    }
+
     fun register() {
         val intent = Intent(context, WorkService::class.java)
         context.startService(intent)
@@ -36,8 +42,6 @@ class MusicManager(private val context: Context, private var mediaPlayerListener
             state(false)
         }
     }
-
-
 
     fun isPlaying() = mBoundService.isPlaying()
 

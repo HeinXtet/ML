@@ -4,8 +4,6 @@ package com.heinhtet.deevd.servicesample.utils
  * Created by Hein Htet on 9/23/18.
  */
 object FormatUtils{
-
-
     fun formatMusicTime(duration: Long): String {
         var time = ""
         val minute = duration / 60000

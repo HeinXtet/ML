@@ -23,16 +23,20 @@ data class MediaItem(var title: String, var path: String)
 class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
 
 
-    lateinit var play : Button
-    private lateinit var musicManager: MusicManager
+    lateinit var play: Button
 
-
-    override fun onStateChanged(state: Int, playWhenReady: Boolean) {
+    override fun onStateChanged(state: Int, playWhenReady: Boolean,item: MediaItem) {
         Log.i(TAG, " player state change $state $playWhenReady")
     }
 
     override fun trackChange(item: MediaItem) {
         Log.i(TAG, " track  change $item")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkState(App.musicManager.isPlaying())
+
     }
 
     override fun progressChange(progress: Long, player: ExoPlayer) {
@@ -50,7 +54,7 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
         seek_bar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                 if (p2) {
-                    musicManager.seekTo(p1.toLong())
+                    App.musicManager.seekTo(p1.toLong())
                 }
             }
 
@@ -60,40 +64,40 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
             override fun onStopTrackingTouch(p0: SeekBar?) {
             }
         })
-        play =  findViewById(R.id.print_timestamp)
+        play = findViewById(R.id.print_timestamp)
         play.setOnClickListener {
-            musicManager.loadMediaItems()
-            musicManager.play(state = {
-                if (it){
+            App.musicManager.loadMediaItems()
+            App.musicManager.play(state = {
+                if (it) {
                     play.text = "pause"
-                }else{
+                } else {
                     play.text = "play"
                 }
             })
         }
         findViewById<Button>(R.id.next).setOnClickListener {
-            musicManager.next()
+            App.musicManager.next()
         }
         findViewById<Button>(R.id.stop_service).setOnClickListener {
-            musicManager.previous()
+            App.musicManager.previous()
             //startActivity(Intent(this@MainActivity, SecondActivity::class.java))
         }
     }
 
-    private fun checkState(playWhenReady: Boolean){
-        if (playWhenReady){
+    private fun checkState(playWhenReady: Boolean) {
+        if (playWhenReady) {
             play.text = "pause"
-        }else{
+        } else {
             play.text = "play"
         }
     }
 
+
     override fun onStart() {
         super.onStart()
+        App.musicManager.register()
         gettingSong()
-        musicManager = MusicManager(this, this)
-        musicManager.register()
-        checkState(musicManager.isPlaying())
+        App.musicManager.setListener(this)
     }
 
     private fun gettingSong() {
@@ -103,16 +107,11 @@ class MainActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
             Log.i(TAG, "load media item ${it.toString()}")
             AppConstants.list.add(MediaItem(it.title, it.filePath))
         }
-      }
-
-    override fun onStop() {
-        super.onStop()
-        musicManager.unRegister()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        // musicManager.stopService()
+        App.musicManager.unRegister()
     }
 
 }

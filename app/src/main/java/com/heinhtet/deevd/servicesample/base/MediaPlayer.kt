@@ -1,6 +1,7 @@
 package com.heinhtet.deevd.servicesample.base
 
 import com.google.android.exoplayer2.ExoPlayer
+import com.heinhtet.deevd.miscy.model.Song
 import com.heinhtet.deevd.servicesample.MediaItem
 
 /**
@@ -50,13 +51,15 @@ abstract class MediaPlayer() {
 
     abstract  fun  previous()
 
+    abstract fun getCurrentItem() : MediaItem
+
 
     interface ProgressUpdateListener {
         fun updateProgress(progress: Long)
     }
 
     interface MediaPlayerListener {
-        fun onStateChanged(state: Int,playWhenReady: Boolean)
+        fun onStateChanged(state: Int,playWhenReady: Boolean,item: MediaItem)
         fun trackChange(item: MediaItem)
         fun progressChange(progress: Long, player: ExoPlayer)
     }

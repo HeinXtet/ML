@@ -15,7 +15,7 @@ class SecondActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
 
     private val TAG = "SecondActivity  : "
 
-    override fun onStateChanged(state: Int ,playWhenReady:Boolean) {
+    override fun onStateChanged(state: Int ,playWhenReady:Boolean,item: MediaItem) {
 
     }
 
@@ -41,7 +41,7 @@ class SecondActivity : AppCompatActivity(), MediaPlayer.MediaPlayerListener {
 
     override fun onStart() {
         super.onStart()
-        musicManager = MusicManager(this, this)
+        musicManager = MusicManager(this)
         musicManager.register()
     }
 

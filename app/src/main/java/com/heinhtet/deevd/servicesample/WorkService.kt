@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
+import android.media.RemoteControlClient
 import android.media.session.MediaSession
 import android.os.Binder
 import android.os.Build
@@ -49,8 +50,8 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
         mediaPlayerListener?.trackChange(item)
     }
 
-    override fun onStateChanged(state: Int, playWhenReady: Boolean) {
-        mediaPlayerListener?.onStateChanged(state, playWhenReady)
+    override fun onStateChanged(state: Int, playWhenReady: Boolean,item: MediaItem) {
+        mediaPlayerListener?.onStateChanged(state, playWhenReady,item)
         if (state == Player.STATE_READY && playWhenReady) {
             mStateBuilder.setState(PlaybackStateCompat.STATE_PLAYING,
                     localMediaPlayer.getCurrentPosition(), 1f)
@@ -59,7 +60,7 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
                     localMediaPlayer.getCurrentPosition(), 1f)
         }
         mMediaSession.setPlaybackState(mStateBuilder.build())
-        startForeground(1, showNotification(mStateBuilder.build()))
+        startForeground(1, showNotification(mStateBuilder.build(),item))
         Log.i(LOG_TAG, " playWhenReady $playWhenReady  state $state  ")
     }
 
@@ -82,6 +83,7 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
         localMediaPlayer = LocalMediaPlayer(this, this, mContext)
         initMediaSession()
     }
+
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         MediaButtonReceiver.handleIntent(mMediaSession, intent)
@@ -156,11 +158,15 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
 
 
     fun isPlaying(): Boolean {
-        if (isInit()) {
-            return localMediaPlayer.isPlaying()
+        return if (isInit()) {
+            Log.i(TAG ,"isplaying ${isInit()}")
+            localMediaPlayer.isPlaying()
 
+        }else{
+            Log.i(TAG ,"isplaying not ${isInit()}")
+            false
         }
-        return false
+
     }
 
     fun start() {
@@ -200,7 +206,7 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
     override fun onDestroy() {
         super.onDestroy()
         mMediaSession.isActive = false
-        mNotificationManager.cancelAll()
+        stopForeground(true)
         stopService(Intent(this, WorkService::class.java))
         Log.v(LOG_TAG, "in onDestroy")
     }
@@ -225,7 +231,7 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
         return channelId
     }
 
-    private fun showNotification(state: PlaybackStateCompat): Notification {
+    private fun showNotification(state: PlaybackStateCompat, mediaItem: MediaItem): Notification {
         val channelId =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     createNotificationChannel("my_service", "My Background Service")
@@ -256,7 +262,7 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
                 MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_STOP))
 
         val contentPendingIntent = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), 0)
-        builder.setContentTitle(getString(R.string.guess))
+        builder.setContentTitle(mediaItem.title)
                 .setContentText(getString(R.string.notification_text))
                 .setContentIntent(contentPendingIntent)
                 .setSmallIcon(R.drawable.ic_launcher_background)
@@ -268,6 +274,7 @@ class WorkService : Service(), MediaPlayer.MediaPlayerListener,
                 .setStyle(android.support.v4.media.app.NotificationCompat.MediaStyle()
                         .setMediaSession(mMediaSession.sessionToken)
                         .setShowActionsInCompactView(0, 1))
+                .setAutoCancel(true)
         return builder.build()
     }
 
